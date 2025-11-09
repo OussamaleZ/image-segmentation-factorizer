@@ -1,3 +1,6 @@
 segmentation_models_pytorch
 factorizer
+nibabel
+nilearn
+matplotlib
 
