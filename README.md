@@ -40,5 +40,15 @@ In short, your `data` folder should be structured like this:
 
 ### ISLES
 
+For each case, an expert level annotation of the stroke lesions is included along with the following three imaging sequences: Fluid attenuated inversion recovery (FLAIR), diffusion weighted imaging (DWI, b=1000) and its corresponding apparent diffusion coefficient (ADC) map. All imaging data and annotations are released in the Neuroimaging Informatics Technology Initiative (NIfTI) format (https://nifti.nimh.nih.gov/nifti-1), according to the BIDS convention. All imaging data are released in the native space without prior registration. Prior to release, skull-stripping was performed to de-identify patients.
+
+Number of samples: 250
+
+Content: Three imaging sequences (FLAIR, DWI, ADC) + annotation
+
+Quality/Resolution: 
+
+File format: .nii
 
 ### BRATS
+

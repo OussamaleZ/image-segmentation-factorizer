@@ -3,4 +3,5 @@ factorizer
 nibabel
 nilearn
 matplotlib
+monai-weekly
 
