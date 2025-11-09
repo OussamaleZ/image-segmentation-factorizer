@@ -20,12 +20,19 @@ In short, your `data` folder should be structured like this:
 
     data/
         isles/
-            folder1/
-            folder2/
+            derivatives/
+                sub-strokecase0001/
+                sub-strokecase0002/
+                .
+                .
+                sub-strokecase0250/
+            sub-strokecase0001/
+            sub-strokecase0002/
             .
-            folder250/
+            .
+            sub-strokecase0250/
         brats/
-            folder1/
-            folder2/
-            .
-            folder250/
+            imagesTr/
+            imagesTs/
+            labelsTr/
+
