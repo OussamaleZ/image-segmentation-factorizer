@@ -3,5 +3,5 @@ factorizer
 nibabel
 nilearn
 matplotlib
-monai-weekly
-
+monai
+SimpleITK-SimpleElastix
