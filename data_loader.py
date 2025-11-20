@@ -12,10 +12,15 @@ from monai.transforms import (
     EnsureTyped,
     LoadImaged,
     NormalizeIntensityd,
-    RandFlipd,
-    RandRotate90d,
     ScaleIntensityRanged,
     RandCropByLabelClassesd,
+    RandFlipd,
+    RandRotate90d,
+    RandAffined,
+    RandGaussianNoised,
+    RandGaussianSmoothd,
+    RandScaleIntensityd,
+    RandShiftIntensityd,
 )
 
 
@@ -33,6 +38,7 @@ class data_laoder:
         cache_rate: float = 0.1,
         seed: int = 42,
         use_cache: bool = True,
+        data_frac: float = 1.0,
     ) -> None:
         self.data_dir = Path(data_dir)
         self.dataset_json = self.data_dir / dataset_json
@@ -43,6 +49,7 @@ class data_laoder:
         self.cache_rate = cache_rate
         self.seed = seed
         self.use_cache = use_cache
+        self.data_frac = data_frac
 
         if not self.dataset_json.exists():
             raise FileNotFoundError(f"Expected dataset json at {self.dataset_json}")
@@ -61,11 +68,42 @@ class data_laoder:
         )
         if len(datalist) == 0:
             raise RuntimeError(f"No training entries found in {self.dataset_json}")
-        return datalist
 
-    def _split_datalist(self, datalist: List[dict]) -> Tuple[List[dict], List[dict]]:
+        orig_len = len(datalist)
         rng = random.Random(self.seed)
         rng.shuffle(datalist)
+
+        if 0.0 < self.data_frac < 1.0:
+            n_keep = max(1, int(orig_len * self.data_frac))
+            datalist = datalist[:n_keep]
+            print(
+                f"[data_laoder] Using only {n_keep}/{orig_len} cases "
+                f"(~{100.0 * self.data_frac:.1f} % of the data)"
+            )
+
+        return datalist
+    def _build_custom_loader(self, list_of_files, is_train=True):
+        dataset_cls = CacheDataset if self.use_cache else Dataset
+
+        transforms = self.train_transforms if is_train else self.val_transforms
+
+        kwargs = {"data": list_of_files, "transform": transforms}
+        if self.use_cache:
+            kwargs["cache_rate"] = self.cache_rate
+        ds = dataset_cls(**kwargs)
+
+        return DataLoader(
+            ds,
+            batch_size=self.batch_size if is_train else 1,
+            shuffle=is_train,
+            num_workers=self.num_workers,
+            collate_fn=list_data_collate,
+        )
+
+    def _split_datalist(self, datalist: List[dict]) -> Tuple[List[dict], List[dict]]:
+        rng = random.Random(self.seed + 1)
+        rng.shuffle(datalist)
+
         split_idx = int(math.ceil(len(datalist) * (1 - self.val_frac)))
         train_files = datalist[:split_idx]
         val_files = datalist[split_idx:]
@@ -78,20 +116,11 @@ class data_laoder:
     # Transforms
     # ------------------------------------------------------------------
     def _build_train_transforms(self) -> Compose:
-        """
-        Training transforms:
-        - Load image & label
-        - Channel-first for both
-        - Intensity scaling + normalization for image
-        - Label-aware cropping around tumor classes (nnU-Net / Factorizer style)
-        - Spatial augmentations
-        """
         return Compose(
             [
                 LoadImaged(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
 
-                # Intensity preprocessing for images
                 ScaleIntensityRanged(
                     keys=["image"],
                     a_min=0.0,
@@ -102,35 +131,46 @@ class data_laoder:
                 ),
                 NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
 
-                # 🔥 Label-aware cropping: focus on tumor classes instead of random crops
-                # Classes: 0=background, 1,2,3=tumor subregions (3=ET)
                 RandCropByLabelClassesd(
                     keys=["image", "label"],
                     label_key="label",
                     spatial_size=self.roi_size,
                     num_classes=4,
                     num_samples=1,
-                    # ratios: relative frequency for sampling patches containing each class
-                    # Here we ignore background (0) and encourage tumor classes.
-                    # You can tune these (e.g. [0, 1, 1, 2] to oversample ET even more).
                     ratios=[0.0, 1.0, 1.0, 2.0],
                 ),
 
-                # Data augmentation
+                # Geometric aug
+                RandAffined(
+                    keys=["image", "label"],
+                    prob=0.15,
+                    rotate_range=(0.5235988, 0.5235988, 0.5235988),  # ±30°
+                    scale_range=(0.3, 0.3, 0.3),  # 1±0.3 → [0.7, 1.3]
+                    mode=("bilinear", "nearest"),
+                    padding_mode="border",
+                ),
                 RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
                 RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
                 RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
                 RandRotate90d(keys=["image", "label"], prob=0.5, max_k=3),
+
+                # Intensity aug
+                RandGaussianNoised(keys=["image"], prob=0.15, mean=0.0, std=0.1),
+                RandGaussianSmoothd(
+                    keys=["image"],
+                    prob=0.15,
+                    sigma_x=(0.5, 1.5),
+                    sigma_y=(0.5, 1.5),
+                    sigma_z=(0.5, 1.5),
+                ),
+                RandScaleIntensityd(keys=["image"], prob=0.15, factors=0.3),
+                RandShiftIntensityd(keys=["image"], prob=0.15, offsets=0.1),
 
                 EnsureTyped(keys=["image", "label"]),
             ]
         )
 
     def _build_val_transforms(self) -> Compose:
-        """
-        Validation transforms:
-        - No cropping: work on full volumes for sliding window inference.
-        """
         return Compose(
             [
                 LoadImaged(keys=["image", "label"]),
@@ -157,13 +197,11 @@ class data_laoder:
 
         dataset_cls = CacheDataset if self.use_cache else Dataset
 
-        # Train dataset
         train_kwargs = {"data": train_files, "transform": self.train_transforms}
         if self.use_cache:
             train_kwargs["cache_rate"] = self.cache_rate
         train_ds = dataset_cls(**train_kwargs)
 
-        # Val dataset
         val_kwargs = {"data": val_files, "transform": self.val_transforms}
         if self.use_cache:
             val_kwargs["cache_rate"] = self.cache_rate
@@ -185,9 +223,6 @@ class data_laoder:
         )
         return train_loader, val_loader
 
-    # ------------------------------------------------------------------
-    # Post transforms (optional)
-    # ------------------------------------------------------------------
     def post_transforms(self) -> Compose:
         return Compose(
             [

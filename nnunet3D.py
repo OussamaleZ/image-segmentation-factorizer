@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.utils.checkpoint as cp
 
 # ------------------------------------------------------------
 # Basic 3D Conv Block (Conv3d → GN → LeakyReLU) × 2
@@ -65,38 +66,32 @@ class NNUNet3D(nn.Module):
         self.ds3_conv = nn.Conv3d(base_channels * 4, out_channels, 1)
 
     def forward(self, x):
-        # Encoder
-        e1 = self.enc1(x)
+        e1 = cp.checkpoint(self.enc1, x)
         p1 = self.pool1(e1)
 
-        e2 = self.enc2(p1)
+        e2 = cp.checkpoint(self.enc2, p1)
         p2 = self.pool2(e2)
 
-        e3 = self.enc3(p2)
+        e3 = cp.checkpoint(self.enc3, p2)
         p3 = self.pool3(e3)
 
-        e4 = self.enc4(p3)
+        e4 = cp.checkpoint(self.enc4, p3)
         p4 = self.pool4(e4)
 
-        # Bottleneck
-        bn = self.bottleneck(p4)
+        bn = cp.checkpoint(self.bottleneck, p4)
 
-        # Decoder
         d4 = self.up4(bn)
-        d4 = torch.cat([d4, e4], dim=1)
-        d4 = self.dec4(d4)
+        d4 = cp.checkpoint(self.dec4, torch.cat([d4, e4], dim=1))
 
         d3 = self.up3(d4)
-        d3 = torch.cat([d3, e3], dim=1)
-        d3 = self.dec3(d3)
+        d3 = cp.checkpoint(self.dec3, torch.cat([d3, e3], dim=1))
 
         d2 = self.up2(d3)
-        d2 = torch.cat([d2, e2], dim=1)
-        d2 = self.dec2(d2)
+        d2 = cp.checkpoint(self.dec2, torch.cat([d2, e2], dim=1))
 
         d1 = self.up1(d2)
-        d1 = torch.cat([d1, e1], dim=1)
-        d1 = self.dec1(d1)
+        d1 = cp.checkpoint(self.dec1, torch.cat([d1, e1], dim=1))
+
 
         # Heads
         p_full = self.out_conv(d1)
