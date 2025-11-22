@@ -40,15 +40,28 @@ In short, your `data` folder should be structured like this:
 
 ### ISLES
 
-For each case, an expert level annotation of the stroke lesions is included along with the following three imaging sequences: Fluid attenuated inversion recovery (FLAIR), diffusion weighted imaging (DWI, b=1000) and its corresponding apparent diffusion coefficient (ADC) map. All imaging data and annotations are released in the Neuroimaging Informatics Technology Initiative (NIfTI) format (https://nifti.nimh.nih.gov/nifti-1), according to the BIDS convention. All imaging data are released in the native space without prior registration. Prior to release, skull-stripping was performed to de-identify patients.
+The ISLES dataset focuses on acute ischemic stroke. Each subject includes three MRI sequences commonly used in stroke assessment: **FLAIR**, **DWI (b=1000)**, and the corresponding **ADC** map. Expert-annotated stroke lesion masks are provided for every case.  
+All files follow the **BIDS** structure and are released in **NIfTI (.nii)** format. Images are kept in **native acquisition space** (no registration or spatial normalization). To ensure anonymity, all scans were **skull-stripped** before release.
 
-Number of samples: 250
-
-Content: Three imaging sequences (FLAIR, DWI, ADC) + annotation
-
-Quality/Resolution: 
-
-File format: .nii
+- **Samples:** 250  
+- **Modalities:** FLAIR, DWI, ADC  
+- **Labels:** Stroke lesion segmentation  
+- **Format:** `.nii` files  
+- **Notes:** Clinical MRI with heterogeneous resolution
 
 ### BRATS
 
+BRATS is a widely used dataset for **glioma brain tumor segmentation**. Each subject includes four standard MRI sequences: **T1**, **T1ce** (contrast-enhanced), **T2**, and **FLAIR**. The dataset provides expert delineations of three tumor regions: **Enhancing Tumor (ET)**, **Tumor Core (TC)**, and **Whole Tumor (WT)**.  
+All scans are preprocessed in a consistent manner: **skull-stripping**, **co-registration**, **resampling to 1 mm³ isotropic**, and **intensity normalization**, which makes the dataset uniform across patients and centers. Data are distributed in **NIfTI (.nii)** format.
+
+- **Samples:** varies by edition (~300 to >2000)  
+- **Modalities:** T1, T1ce, T2, FLAIR  
+- **Labels:** ET, TC, WT tumor subregions  
+- **Format:** `.nii` files  
+- **Notes:** Fully preprocessed, ready for direct use in segmentation pipelines
+
+
+
+## Python version
+
+Oussama: I am using 3.11.9. Factorizer requires at least >= 3.10.

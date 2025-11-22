@@ -1,7 +1,8 @@
 segmentation_models_pytorch
-factorizer
+git+https://github.com/pashtari/factorizer.git
 nibabel
 nilearn
 matplotlib
 monai
 SimpleITK-SimpleElastix
+lightning

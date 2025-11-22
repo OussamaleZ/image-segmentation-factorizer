@@ -1,1 +1,26 @@
 /data/
+/factorizer-env/
+.factorizer-env/
+__pycache__/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+env/
+.python-version
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
