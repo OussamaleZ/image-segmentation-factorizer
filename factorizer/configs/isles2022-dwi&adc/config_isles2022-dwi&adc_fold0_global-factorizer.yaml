@@ -1,6 +1,6 @@
 data:
     !ft.ISLESDataModule {
-        data_properties: ~/ISLES2022/dataset-dwi&adc.json,
+        data_properties: /Data/data/isles/dataset_without_flair.json,
         spacing: [2.0, 2.0, 2.0],
         spatial_size: [64, 64, 64],
         num_splits: 5,

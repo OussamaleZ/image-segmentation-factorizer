@@ -1,6 +1,6 @@
 data:
     !ft.ISLESDataModule {
-        data_properties: ~/ISLES2022/dataset-dwi&adc.json,
+        data_properties: /Data/data/isles/dataset_without_flair.json,
         spacing: [2.0, 2.0, 2.0],
         spatial_size: [64, 64, 64],
         num_splits: 5,
@@ -83,9 +83,9 @@ task:
 training:
     max_steps: 100000
     max_epochs: 9223372036854775807
-    gpus: 2
+    gpus: 1
     num_nodes: 1
-    accelerator: ddp
+    accelerator: cuda
     check_val_every_n_epoch: 10
     callbacks:
         - !pl.LearningRateMonitor { logging_interval: step }
