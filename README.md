@@ -8,7 +8,13 @@ Paper: "Factorizer: A scalable interpretable approach to context modeling for me
 
 ## Steps to follow:
 
-### 1. **Install requirements**
+### 1. **Setup**
+
+Python version: `python 3.9`
+
+`pip install -e FACTORIZER/model/factorizer`
+
+`pip install -r requirements`
 
 ### 2. **Import the datasets into a folder named `data`.** It should contain two subfolders:
 
@@ -16,7 +22,7 @@ Paper: "Factorizer: A scalable interpretable approach to context modeling for me
 
    2.2. **brats:** [The Multimodal Brain Tumor Image Segmentation Benchmark (BRATS)](https://drive.google.com/drive/folders/1HqEgzS8BV2c7xYNrZdEAnrHk7osJJ--2) (Download data of task1)
 
-In short, your `data` folder should be structured like this:
+Your `data` folder should be structured like this:
 
     data/
         isles/
@@ -59,9 +65,3 @@ All scans are preprocessed in a consistent manner: **skull-stripping**, **co-reg
 - **Labels:** ET, TC, WT tumor subregions  
 - **Format:** `.nii` files  
 - **Notes:** Fully preprocessed, ready for direct use in segmentation pipelines
-
-
-
-## Python version
-
-Oussama: I am using 3.11.9. Factorizer requires at least >= 3.10.

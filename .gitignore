@@ -1,6 +1,10 @@
 /data/
 /factorizer-env/
 .factorizer-env/
+
+/factorizer-env3.9/
+.factorizer-env3.9/
+
 __pycache__/
 
 # macOS system files
