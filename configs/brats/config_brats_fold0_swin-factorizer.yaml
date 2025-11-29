@@ -1,12 +1,12 @@
 data:
     !ft.BraTSDataModule {
-        data_properties: ~/Decathlon/Task01_BrainTumour/dataset.json,
+        data_properties: /Data/data/brats/dataset.json,
         spacing: [1.0, 1.0, 1.0],
         spatial_size: [128, 128, 128],
         num_splits: 5,
         split: 0,
-        batch_size: 1,
-        num_workers: 4,
+        batch_size: 2,
+        num_workers: 24,
         cache_num: 4,
         cache_rate: 1.0,
         seed: 42,
@@ -83,30 +83,31 @@ task:
 training:
     max_steps: 100000
     max_epochs: 9223372036854775807
-    gpus: 2
+    gpus: 1
     num_nodes: 1
-    accelerator: ddp
+    accelerator: cuda
     check_val_every_n_epoch: 50
     callbacks:
         - !pl.LearningRateMonitor { logging_interval: step }
         - !pl.ModelCheckpoint { every_n_train_steps: 50 }
-        - !ft.SaveValResults {
-              save_path: logs/brats/fold0/swin-factorizer/version_0/results.csv,
-          }
+        # - !ft.SaveValResults {
+        #       save_path: /Data/logs/brats/fold0/swin-factorizer/version_0/results.csv,
+        #   }
     logger:
-        !pl.TensorBoardLogger {
-            save_dir: logs/brats/fold0,
-            name: swin-factorizer,
+        !pl.WandbLogger {
+            name: swin-factorizer-fold0-brats,
+            project: image-segmentation-factorizer,
+            save_dir: /Data/logs/brats/fold0,
         }
 
 test:
     checkpoint:
-        checkpoint_path: logs/brats/fold0/swin-factorizer/version_0/checkpoints/epoch=515-step=99999.ckpt
+        checkpoint_path: /Data/logs/brats/fold0/swin-factorizer/version_0/checkpoints/epoch=515-step=99999.ckpt
     inferer:
         !ft.BraTSInferer {
             spacing: [1.0, 1.0, 1.0],
             spatial_size: [128, 128, 128],
             overlap: 0.5,
             post: class,
-            write_dir: logs/brats/fold0/swin-factorizer/version_0/predictions,
+            write_dir: /Data/logs/brats/fold0/swin-factorizer/version_0/predictions,
         }

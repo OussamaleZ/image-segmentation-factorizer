@@ -114,7 +114,8 @@ class FactorizerSubblock(nn.Module):
         # remove 1-dim modes (squeeze)
         out = out.reshape(*shape[:2], *self.tensorized_size)
 
-        # tensor factorization)
+        # tensor factorization
+        # here we can print the rank used
         out = self.factorize(out)
 
         # back to the original size (unsqueeze)

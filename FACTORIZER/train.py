@@ -16,7 +16,7 @@ print("Device: ", "cuda" if torch.cuda.is_available() else "cpu")
 ## wandb
 
 if "WANDB_API_KEY" not in os.environ:
-    raise RuntimeError("Set WANDB_API_KEY in your environment before running.")
+    raise RuntimeError("Set WANDB_API_KEY in your environment before running. You can do this with the command: export WANDB_API_KEY=your_key_here")
 
 wandb.login(key=os.environ["WANDB_API_KEY"])
 
