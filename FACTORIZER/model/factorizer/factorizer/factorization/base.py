@@ -55,10 +55,12 @@ class MF(nn.Module):
         self.compression = df_input / (self.rank * df_lowrank)
 
         # set factors initializer
+        self.init_arg_wrapped = tuple(init)
         init = wrap_class(init)
         self.init = init(size=size, rank=rank)
 
         # set solver
+        self.solver_arg_wrapped = tuple(solver)
         solver = wrap_class(solver)
         self.solver = solver(size=size, rank=rank)
 
@@ -72,6 +74,33 @@ class MF(nn.Module):
         }
 
         self.verbose = verbose
+    
+    def _get_module_device(self, module):
+        for tensor in module.parameters():
+            return tensor.device
+        for buffer in module.buffers():
+            return buffer.device
+        return torch.device("cpu")
+
+    def update_rank(self, rank):
+
+        init_device = self._get_module_device(self.init)
+        solver_device = self._get_module_device(self.solver)
+
+        init = wrap_class(self.init_arg_wrapped)
+        self.init = init(size=self.size, rank=rank).to(init_device)
+
+        solver = wrap_class(self.solver_arg_wrapped)
+        self.solver = solver(size=self.size, rank=rank).to(solver_device)
+
+        self.rank = rank
+        # self.flops = {
+        #     "init": getattr(self.init, "flops", None),
+        #     "decompose": self.num_iters * self.solver.flops
+        #     if hasattr(self.solver, "flops")
+        #     else None,
+        #     "reconstruct": 2 * self.size[0] * rank * self.size[1],
+        # }
 
     def context(self, it):
         # get context at each iteration it
@@ -88,6 +117,8 @@ class MF(nn.Module):
         # initialize
         with self.context(0):
             u, v = self.init(x)
+            u.to(x.device)
+            v.to(x.device)
 
         # iterate
         for it in range(1, self.num_iters + 1):
@@ -233,4 +264,3 @@ class TF(nn.Module):
         factors = self.decompose(x)
         tensors = {**factors, **dict(self.named_parameters())}
         return self.forward_expr(tensors)
-

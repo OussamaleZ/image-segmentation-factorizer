@@ -39,8 +39,6 @@ setup(
         "scipy==1.9.1",
         "pandas==1.4.4",
         "scikit-image==0.19.3",
-        "torch==1.11",
-        "torchvision==0.12.0",
         "pytorch-lightning==1.6.5",
         "torchmetrics==0.9.3",
         "einops==0.4.1",
@@ -51,5 +49,7 @@ setup(
         "nibabel==4.0.2",
         "monai==0.9.0",
         "performer-pytorch==1.1.4",
+        "wandb",
+        "matplotlib",
     ],
 )

@@ -22,8 +22,6 @@ Requires-Dist: sympy==1.11.1
 Requires-Dist: scipy==1.9.1
 Requires-Dist: pandas==1.4.4
 Requires-Dist: scikit-image==0.19.3
-Requires-Dist: torch==1.11
-Requires-Dist: torchvision==0.12.0
 Requires-Dist: pytorch-lightning==1.6.5
 Requires-Dist: torchmetrics==0.9.3
 Requires-Dist: einops==0.4.1
@@ -34,6 +32,8 @@ Requires-Dist: itk
 Requires-Dist: nibabel==4.0.2
 Requires-Dist: monai==0.9.0
 Requires-Dist: performer-pytorch==1.1.4
+Requires-Dist: wandb
+Requires-Dist: matplotlib
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier
